@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.io Client</title>
+</head>
+<body>
+    <h1>Socket.io Client</h1>
+    <input type="text" id="name" placeholder="Name">
+    <input type="text" id="room" placeholder="Room">
+    <button onclick="joinRoom()">Join Room</button>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Type a message">
+    <button onclick="sendMessage()">Send Message</button>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io('http://localhost:5000');
+
+        function joinRoom() {
+            const name = document.getElementById('name').value;
+            const room = document.getElementById('room').value;
+            socket.emit('join', { name, room }, (error) => {
+                if (error) {
+                    alert(error);
+                }
+            });
+        }
+
+        socket.on('message', (message) => {
+            const messages = document.getElementById('messages');
+            const messageElement = document.createElement('div');
+            messageElement.innerText = `${message.user}: ${JSON.stringify(message.text)}`;
+            messages.appendChild(messageElement);
+        });
+
+        socket.on('typing', ({ user }) => {
+            console.log(`${user} is typing...`);
+        });
+
+        socket.on('stopTyping', ({ user }) => {
+            console.log(`${user} stopped typing`);
+        });
+
+        socket.on('onlineUsers', (onlineUsers) => {
+            console.log('Online Users:', onlineUsers);
+        });
+
+        function sendMessage() {
+            const message = document.getElementById('messageInput').value;
+            socket.emit('sendMessage', message, () => {
+                document.getElementById('messageInput').value = '';
+            });
+        }
+
+        document.getElementById('messageInput').addEventListener('keypress', () => {
+            socket.emit('typing', { room: document.getElementById('room').value, user: document.getElementById('name').value });
+        });
+
+        document.getElementById('messageInput').addEventListener('keyup', () => {
+            setTimeout(() => {
+                socket.emit('stopTyping', { room: document.getElementById('room').value, user: document.getElementById('name').value });
+            }, 500);
+        });
+    </script>
+</body>
+</html>
