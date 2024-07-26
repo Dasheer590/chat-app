@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const socketio = require('socket.io');
 const cors = require('cors');
+const path = require('path');
 
 const { addUser, removeUser, getUser, getUsersInRoom } = require('./users');
 
@@ -11,6 +12,9 @@ const io = socketio(server);
 
 app.use(cors());
 app.use(express.json());
+
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, '../client/build')));
 
 io.on('connect', (socket) => {
   socket.on('join', ({ name, room }, callback) => {
@@ -46,6 +50,7 @@ io.on('connect', (socket) => {
   });
 });
 
+// API endpoints
 app.post('/join', (req, res) => {
   const { name, room } = req.body;
   const { error, user } = addUser({ id: 'temporaryId', name, room });
@@ -67,6 +72,9 @@ app.post('/sendMessage', (req, res) => {
   }
 });
 
+// Serve the React app for any other routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+});
+
 server.listen(process.env.PORT || 5000, () => console.log(`Server has started.`));
-
-

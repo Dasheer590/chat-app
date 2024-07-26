@@ -9,7 +9,7 @@ import Input from '../Input/Input';
 
 import './Chat.css';
 
-const ENDPOINT = 'http://localhost:5000'; // Update with your backend URL
+const ENDPOINT = 'https://chat-app-190w.onrender.com';
 
 let socket;
 
